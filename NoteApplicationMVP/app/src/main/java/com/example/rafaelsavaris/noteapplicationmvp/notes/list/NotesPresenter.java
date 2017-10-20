@@ -27,5 +27,14 @@ public class NotesPresenter implements NotesContract.Presenter {
         return this.notesFilterType;
     }
 
+    @Override
+    public void result(int requestCode, int resultCode) {
+
+    }
+
+    @Override
+    public void start() {
+
+    }
 
 }
