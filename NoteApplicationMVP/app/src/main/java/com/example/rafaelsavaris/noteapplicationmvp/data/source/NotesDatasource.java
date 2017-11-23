@@ -20,4 +20,8 @@ public interface NotesDatasource {
 
     void getNotes(LoadNotesCallBack loadNotesCallBack);
 
+    void deleteAllNotes();
+
+    void saveNote(Note note);
+
 }

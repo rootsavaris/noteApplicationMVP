@@ -4,8 +4,15 @@ import com.example.rafaelsavaris.noteapplicationmvp.data.model.Note;
 import com.example.rafaelsavaris.noteapplicationmvp.data.source.NotesDatasource;
 import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import java.util.logging.LogRecord;
 
@@ -17,44 +24,92 @@ public class NotesLocalDataSource implements NotesDatasource {
 
     private static NotesLocalDataSource instance;
 
-    private static final int TIME_SERVICE = 5000;
+    private NotesDataBaseHelper notesDataBaseHelper;
 
-    private final static Map<String, Note> NOTES_DATA;
-
-    static {
-        NOTES_DATA = new LinkedHashMap<>(2);
-        addNote("Note 1", "This is the Note1");
-        addNote("Note 2", "This is the Note2");
+    private NotesLocalDataSource(Context context) {
+        notesDataBaseHelper = new NotesDataBaseHelper(context);
     }
 
-    public static NotesLocalDataSource getInstance() {
+    public static NotesLocalDataSource getInstance(Context context) {
 
         if (instance == null) {
-            instance = new NotesLocalDataSource();
+            instance = new NotesLocalDataSource(context);
         }
 
         return instance;
 
     }
 
-    private static void addNote(String title, String description) {
-        Note note = new Note(title, description);
-        NOTES_DATA.put(note.getId(), note);
-    }
-
     @Override
     public void getNotes(final LoadNotesCallBack loadNotesCallBack) {
 
-        Handler handler = new Handler();
+        List<Note> notes = new ArrayList<>();
 
-        handler.postDelayed(new Runnable() {
+        SQLiteDatabase db = notesDataBaseHelper.getReadableDatabase();
 
-            @Override
-            public void run() {
-                loadNotesCallBack.onNotesLoaded(Lists.newArrayList(NOTES_DATA.values()));
+        String[] projection = {
+                NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID,
+                NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE,
+                NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION
+        };
+
+        Cursor c = db.query(
+                NotesPersistenceContract.NotesEntry.TABLE_NAME, projection, null, null, null, null, null);
+
+        if (c != null && c.getCount() > 0) {
+
+            while (c.moveToNext()) {
+
+                String itemId = c.getString(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID));
+                String title = c.getString(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE));
+                String description =
+                        c.getString(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION));
+
+                Note note = new Note(title, description, itemId);
+
+                notes.add(note);
+
             }
+        }
 
-        }, TIME_SERVICE);
+        if (c != null) {
+            c.close();
+        }
+
+        db.close();
+
+        if (notes.isEmpty()){
+            loadNotesCallBack.onDataNotAvailable();
+        } else {
+            loadNotesCallBack.onNotesLoaded(notes);
+        }
+
+    }
+
+    @Override
+    public void deleteAllNotes() {
+
+        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+
+        database.delete(NotesPersistenceContract.NotesEntry.TABLE_NAME, null, null);
+
+        database.close();
+
+    }
+
+    @Override
+    public void saveNote(Note note) {
+
+        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID, note.getId());
+        values.put(NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE, note.getTitle());
+        values.put(NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION, note.getText());
+
+        database.insert(NotesPersistenceContract.NotesEntry.TABLE_NAME, null, values);
+
+        database.close();
 
     }
 

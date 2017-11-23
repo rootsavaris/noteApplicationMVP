@@ -58,4 +58,14 @@ public class NotesRemoteDataSource implements NotesDatasource {
 
     }
 
+    @Override
+    public void deleteAllNotes() {
+        NOTES_DATA.clear();
+    }
+
+    @Override
+    public void saveNote(Note note) {
+        NOTES_DATA.put(note.getId(), note);
+    }
+
 }
