@@ -24,4 +24,6 @@ public interface NotesDatasource {
 
     void saveNote(Note note);
 
+    void refreshNotes();
+
 }

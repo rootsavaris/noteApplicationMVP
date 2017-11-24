@@ -19,9 +19,15 @@ public class NotesContract {
 
         void result(int requestCode, int resultCode);
 
+        void loadNotes(boolean forceUpdate);
+
     }
 
     interface View extends BaseView<Presenter> {
+
+        void setLoadingIndicator(boolean active);
+
+        boolean isActive();
 
         void onActivityResult(int requestCode, int resultCode, Intent data);
 

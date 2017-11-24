@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NotesFragment extends Fragment implements NotesContract.View {
 
-    private NotesContract.Presenter presenter;
+    private NotesContract.Presenter mPresenter;
 
     private NotesAdapter notesAdapter;
 
@@ -61,17 +61,27 @@ public class NotesFragment extends Fragment implements NotesContract.View {
     @Override
     public void onResume() {
         super.onResume();
-        presenter.start();
+        mPresenter.start();
     }
 
     @Override
-    public void setPresenter(NotesContract.Presenter presenter){
-        this.presenter = presenter;
+    public void setPresenter(NotesContract.Presenter mPresenter){
+        this.mPresenter = mPresenter;
+    }
+
+    @Override
+    public void setLoadingIndicator(boolean active) {
+
+    }
+
+    @Override
+    public boolean isActive() {
+        return isAdded();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
-        presenter.result(requestCode, resultCode);
+        mPresenter.result(requestCode, resultCode);
     }
 
     @Nullable
@@ -129,7 +139,7 @@ public class NotesFragment extends Fragment implements NotesContract.View {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-//                mPresenter.loadTasks(false);
+                mPresenter.loadNotes(false);
             }
         });
 

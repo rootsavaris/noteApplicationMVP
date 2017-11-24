@@ -23,9 +23,9 @@ public class NotesRepository implements NotesDatasource {
 
     boolean cacheIsDirty = false;
 
-    public static NotesRepository getInstance(NotesDatasource notesRemote, NotesDatasource notesLocal){
+    public static NotesRepository getInstance(NotesDatasource notesRemote, NotesDatasource notesLocal) {
 
-        if (instance == null){
+        if (instance == null) {
             instance = new NotesRepository(notesRemote, notesLocal);
         }
 
@@ -33,12 +33,12 @@ public class NotesRepository implements NotesDatasource {
 
     }
 
-    private NotesRepository(NotesDatasource notesRemote, NotesDatasource notesLocal){
+    private NotesRepository(NotesDatasource notesRemote, NotesDatasource notesLocal) {
         this.notesRemote = notesRemote;
         this.notesLocal = notesLocal;
     }
 
-    public static void destroyInstance(){
+    public static void destroyInstance() {
         instance = null;
     }
 
@@ -46,14 +46,14 @@ public class NotesRepository implements NotesDatasource {
     @Override
     public void getNotes(final LoadNotesCallBack loadNotesCallBack) {
 
-        if (cachedNotes != null && !cacheIsDirty){
+        if (cachedNotes != null && !cacheIsDirty) {
 
             loadNotesCallBack.onNotesLoaded(new ArrayList<>(cachedNotes.values()));
             return;
 
         }
 
-        if (cacheIsDirty){
+        if (cacheIsDirty) {
             getNotesFromRemoteDataSource(loadNotesCallBack);
         } else {
 
@@ -82,7 +82,12 @@ public class NotesRepository implements NotesDatasource {
     public void saveNote(Note note) {
     }
 
-    private void getNotesFromRemoteDataSource(final LoadNotesCallBack loadNotesCallBack){
+    @Override
+    public void refreshNotes() {
+        cacheIsDirty = true;
+    }
+
+    private void getNotesFromRemoteDataSource(final LoadNotesCallBack loadNotesCallBack) {
 
         notesRemote.getNotes(new LoadNotesCallBack() {
 
@@ -100,15 +105,15 @@ public class NotesRepository implements NotesDatasource {
 
     }
 
-    private void refreshCache(List<Note> notes){
+    private void refreshCache(List<Note> notes) {
 
-        if (cachedNotes == null){
+        if (cachedNotes == null) {
             cachedNotes = new LinkedHashMap<>();
         }
 
         cachedNotes.clear();
 
-        for (Note note : notes){
+        for (Note note : notes) {
             cachedNotes.put(note.getId(), note);
         }
 
@@ -116,14 +121,16 @@ public class NotesRepository implements NotesDatasource {
 
     }
 
-    private void refreshLocalDataSource(List<Note> notes){
+    private void refreshLocalDataSource(List<Note> notes) {
 
         notesLocal.deleteAllNotes();
 
-        for(Note note : notes){
+        for (Note note : notes) {
             notesLocal.saveNote(note);
         }
 
     }
+
+
 
 }

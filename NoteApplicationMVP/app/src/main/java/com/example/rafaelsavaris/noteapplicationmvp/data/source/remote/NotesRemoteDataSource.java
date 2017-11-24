@@ -68,4 +68,8 @@ public class NotesRemoteDataSource implements NotesDatasource {
         NOTES_DATA.put(note.getId(), note);
     }
 
+    @Override
+    public void refreshNotes() {
+    }
+
 }

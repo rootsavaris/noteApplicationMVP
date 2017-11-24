@@ -16,6 +16,7 @@ public class NotesDataBaseHelper extends SQLiteOpenHelper {
                     NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID + NotesPersistenceContract.NotesEntry.TEXT_TYPE + " PRIMARY KEY," +
                     NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE + NotesPersistenceContract.NotesEntry.TEXT_TYPE + NotesPersistenceContract.NotesEntry.COMMA_SEP +
                     NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION + NotesPersistenceContract.NotesEntry.TEXT_TYPE + NotesPersistenceContract.NotesEntry.COMMA_SEP +
+                    NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED + NotesPersistenceContract.NotesEntry.BOOLEAN_TYPE +
                     " )";
 
     public NotesDataBaseHelper(Context context) {

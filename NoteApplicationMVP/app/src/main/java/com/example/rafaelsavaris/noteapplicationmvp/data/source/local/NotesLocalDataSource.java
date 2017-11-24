@@ -113,4 +113,8 @@ public class NotesLocalDataSource implements NotesDatasource {
 
     }
 
+    @Override
+    public void refreshNotes() {
+    }
+
 }

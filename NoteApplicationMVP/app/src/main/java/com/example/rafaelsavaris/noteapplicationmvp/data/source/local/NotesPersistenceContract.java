@@ -10,6 +10,8 @@ public class NotesPersistenceContract {
 
     public static abstract class NotesEntry implements BaseColumns {
 
+        public static final String BOOLEAN_TYPE = " INTEGER";
+
         public static final String TEXT_TYPE = " TEXT";
 
         public static final String COMMA_SEP = ",";
@@ -18,6 +20,7 @@ public class NotesPersistenceContract {
         public static final String COLUMN_NAME_ENTRY_ID = "entryid";
         public static final String COLUMN_NAME_TITLE = "title";
         public static final String COLUMN_NAME_DESCRIPTION = "description";
+        public static final String COLUMN_NAME_MARKED = "marked";
 
     }
 
