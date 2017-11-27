@@ -6,6 +6,7 @@ import com.example.rafaelsavaris.noteapplicationmvp.data.model.Note;
 import com.example.rafaelsavaris.noteapplicationmvp.data.source.NotesDatasource;
 import com.google.common.collect.Lists;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -70,6 +71,31 @@ public class NotesRemoteDataSource implements NotesDatasource {
 
     @Override
     public void refreshNotes() {
+    }
+
+    @Override
+    public void markNote(Note note) {
+
+        Note markedNote = new Note(note.getTitle(), note.getText(), note.getId());
+        NOTES_DATA.put(markedNote.getId(), markedNote);
+
+    }
+
+    @Override
+    public void clearMarkedNotes() {
+
+        Iterator<Map.Entry<String, Note>> it = NOTES_DATA.entrySet().iterator();
+
+        while (it.hasNext()){
+
+            Map.Entry<String, Note> entry = it.next();
+
+            if (entry.getValue().isMarked()){
+                it.remove();
+            }
+
+        }
+
     }
 
 }

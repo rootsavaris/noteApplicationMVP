@@ -117,4 +117,38 @@ public class NotesLocalDataSource implements NotesDatasource {
     public void refreshNotes() {
     }
 
+    @Override
+    public void markNote(Note note) {
+
+        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+
+        values.put(NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED, true);
+
+        String selection = NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
+
+        String[] selectionsArgs = {note.getId()};
+
+        database.update(NotesPersistenceContract.NotesEntry.TABLE_NAME, values, selection, selectionsArgs);
+
+        database.close();
+
+    }
+
+    @Override
+    public void clearMarkedNotes() {
+
+        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+
+        String selection = NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED + " LIKE ?";
+
+        String[] selectionArgs = { "1" };
+
+        database.delete(NotesPersistenceContract.NotesEntry.TABLE_NAME, selection, selectionArgs);
+
+        database.close();
+
+    }
+
 }

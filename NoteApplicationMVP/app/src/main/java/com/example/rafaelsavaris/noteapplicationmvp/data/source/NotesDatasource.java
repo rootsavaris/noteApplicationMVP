@@ -26,4 +26,8 @@ public interface NotesDatasource {
 
     void refreshNotes();
 
+    void markNote(Note note);
+
+    void clearMarkedNotes();
+
 }

@@ -4,10 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -47,6 +51,8 @@ public class NotesFragment extends Fragment implements NotesContract.View {
 
     private TextView mNoNoteAddView;
 
+    private ScrollChildSwipeRefreshLayout swipeRefreshLayout;
+
     public static NotesFragment newInstance(){
         return new NotesFragment();
     }
@@ -56,32 +62,6 @@ public class NotesFragment extends Fragment implements NotesContract.View {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         notesAdapter = new NotesAdapter(new ArrayList<Note>(0), notesItemListener);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        mPresenter.start();
-    }
-
-    @Override
-    public void setPresenter(NotesContract.Presenter mPresenter){
-        this.mPresenter = mPresenter;
-    }
-
-    @Override
-    public void setLoadingIndicator(boolean active) {
-
-    }
-
-    @Override
-    public boolean isActive() {
-        return isAdded();
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
-        mPresenter.result(requestCode, resultCode);
     }
 
     @Nullable
@@ -125,7 +105,7 @@ public class NotesFragment extends Fragment implements NotesContract.View {
         });
 
         // Set up progress indicator
-        final ScrollChildSwipeRefreshLayout swipeRefreshLayout = root.findViewById(R.id.refresh_layout);
+        swipeRefreshLayout = root.findViewById(R.id.refresh_layout);
 
         swipeRefreshLayout.setColorSchemeColors(
                 ContextCompat.getColor(getActivity(), R.color.colorPrimary),
@@ -148,22 +128,136 @@ public class NotesFragment extends Fragment implements NotesContract.View {
         return root;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        mPresenter.start();
+    }
 
+    @Override
+    public void setPresenter(NotesContract.Presenter mPresenter){
+        this.mPresenter = mPresenter;
+    }
 
+    @Override
+    public void setLoadingIndicator(final boolean active) {
+
+        if (getView() == null){
+            return;
+        }
+
+        swipeRefreshLayout.post(new Runnable() {
+            @Override
+            public void run() {
+
+                swipeRefreshLayout.setRefreshing(active);
+
+            }
+        });
+
+    }
+
+    @Override
+    public boolean isActive() {
+        return isAdded();
+    }
+
+    @Override
+    public void showNotes(List<Note> notes) {
+        notesAdapter.replaceData(notes);
+        mNotesView.setVisibility(View.VISIBLE);
+        mNoNotesView.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void showNoNotes() {
+        showNoNotesViews(getString(R.string.no_notes_all), R.drawable.ic_assignment_turned_in_24dp, false);
+    }
+
+    @Override
+    public void showNoMarkedNotes() {
+        showNoNotesViews(getString(R.string.no_notes_marked), R.drawable.ic_assignment_turned_in_24dp, false);
+    }
+
+    @Override
+    public void showAllFilterLabel(){
+        mFilteringLabelView.setText(getString(R.string.label_all));
+    }
+
+    @Override
+    public void showMarkedFilterLabel(){
+        mFilteringLabelView.setText(getString(R.string.label_marked));
+    }
+
+    @Override
+    public void showLoadingNotesError() {
+        showMessage(getString(R.string.loading_notes_error));
+    }
+
+    @Override
+    public void showNoteMarked() {
+        showMessage(getString(R.string.note_marked));
+    }
+
+    @Override
+    public void showNotesCleared() {
+        showMessage(getString(R.string.marked_notes_cleared));
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        mPresenter.result(requestCode, resultCode);
+    }
 
     NotesItemListener notesItemListener = new NotesItemListener() {
 
         @Override
         public void onNoteClick(Note clickedNote) {
-
         }
 
         @Override
         public void onMarkedNoteClick(Note markedNote) {
-
+            mPresenter.markNote(markedNote);
         }
 
     };
+
+    private void showNoNotesViews(String mainText, int iconRes, boolean showAddView) {
+
+        mNotesView.setVisibility(View.GONE);
+        mNoNotesView.setVisibility(View.VISIBLE);
+
+        mNoNoteMainView.setText(mainText);
+        mNoNoteIcon.setImageDrawable(getResources().getDrawable(iconRes));
+        mNoNoteAddView.setVisibility(showAddView ? View.VISIBLE : View.GONE);
+
+    }
+
+    private void showMessage(String message){
+        Snackbar.make(getView(), message, Snackbar.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_clear:
+                mPresenter.clearMarkedNotes();
+                break;
+            case R.id.menu_filter:
+//                showFilteringPopUpMenu();
+                break;
+            case R.id.menu_refresh:
+                mPresenter.loadNotes(true);
+                break;
+        }
+        return true;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.notes_fragment_menu, menu);
+    }
 
     private static class NotesAdapter extends BaseAdapter {
 

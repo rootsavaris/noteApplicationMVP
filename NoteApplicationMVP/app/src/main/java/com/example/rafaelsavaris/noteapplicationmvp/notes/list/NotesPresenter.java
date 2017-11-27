@@ -42,7 +42,7 @@ public class NotesPresenter implements NotesContract.Presenter {
 
     @Override
     public void start() {
-
+        loadNotes(false);
     }
 
     @Override
@@ -52,6 +52,20 @@ public class NotesPresenter implements NotesContract.Presenter {
 
         firstLoad = false;
 
+    }
+
+    @Override
+    public void markNote(Note markedNote) {
+        mRepository.markNote(markedNote);
+        mView.showNoteMarked();
+        loadNotes(false, false);
+    }
+
+    @Override
+    public void clearMarkedNotes() {
+        mRepository.clearMarkedNotes();
+        mView.showNotesCleared();
+        loadNotes(false, false);
     }
 
     private void loadNotes(boolean forceUpdate, final boolean showLoading){
@@ -93,17 +107,69 @@ public class NotesPresenter implements NotesContract.Presenter {
                     return;
                 }
 
+                if (showLoading){
+                    mView.setLoadingIndicator(false);
+                }
+
+                processNotes(notes);
+
             }
 
             @Override
             public void onDataNotAvailable() {
 
+                if (!mView.isActive()){
+                    return;
+                }
+
+                mView.showLoadingNotesError();
+
             }
 
         });
 
+    }
+
+    private void processNotes(List<Note> notes){
+
+        if (notes.isEmpty()){
+            processEmptyNotes();
+        } else {
+            mView.showNotes(notes);
+            showFilterLabel();
+        }
 
     }
 
+    private void processEmptyNotes(){
+
+        switch (mFilterType){
+
+            case MARKED_NOTES:
+                mView.showNoMarkedNotes();
+                break;
+
+            default:
+                mView.showNoNotes();
+                break;
+
+        }
+
+    }
+
+    private void showFilterLabel(){
+
+        switch (mFilterType){
+
+            case MARKED_NOTES:
+                mView.showMarkedFilterLabel();
+                break;
+            default:
+                mView.showAllFilterLabel();
+                break;
+
+        }
+
+    }
 
 }
