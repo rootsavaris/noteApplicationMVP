@@ -52,6 +52,8 @@ public class NotesContract {
 
         void showNotesCleared();
 
+        void showFilteringPopUpMenu();
+
         void onActivityResult(int requestCode, int resultCode, Intent data);
 
 

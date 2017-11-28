@@ -19,6 +19,7 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.example.rafaelsavaris.noteapplicationmvp.R;
@@ -72,19 +73,19 @@ public class NotesFragment extends Fragment implements NotesContract.View {
         View root = inflater.inflate(R.layout.notes_fragment, container, false);
 
         // Set up tasks view
-        ListView listView = (ListView) root.findViewById(R.id.notes_list);
+        ListView listView = root.findViewById(R.id.notes_list);
 
         listView.setAdapter(notesAdapter);
 
-        mFilteringLabelView = (TextView) root.findViewById(R.id.filteringLabel);
+        mFilteringLabelView = root.findViewById(R.id.filteringLabel);
 
-        mNotesView = (LinearLayout) root.findViewById(R.id.notesLL);
+        mNotesView = root.findViewById(R.id.notesLL);
 
         // Set up  no tasks view
         mNoNotesView = root.findViewById(R.id.noNotes);
-        mNoNoteIcon = (ImageView) root.findViewById(R.id.noNOtesIcon);
-        mNoNoteMainView = (TextView) root.findViewById(R.id.noNotesMain);
-        mNoNoteAddView = (TextView) root.findViewById(R.id.noNOtesAdd);
+        mNoNoteIcon = root.findViewById(R.id.noNOtesIcon);
+        mNoNoteMainView = root.findViewById(R.id.noNotesMain);
+        mNoNoteAddView = root.findViewById(R.id.noNOtesAdd);
         mNoNoteAddView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -206,6 +207,39 @@ public class NotesFragment extends Fragment implements NotesContract.View {
     }
 
     @Override
+    public void showFilteringPopUpMenu() {
+
+        PopupMenu popupMenu = new PopupMenu(getContext(), getActivity().findViewById(R.id.menu_filter));
+
+        popupMenu.getMenuInflater().inflate(R.menu.filter_notes, popupMenu.getMenu());
+
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+
+                switch (item.getItemId()){
+
+                    case R.id.marked:
+                        mPresenter.setFilter(NotesFilterType.MARKED_NOTES);
+                        break;
+                    default:
+                        mPresenter.setFilter(NotesFilterType.ALL_NOTES);
+                        break;
+
+                }
+
+                mPresenter.loadNotes(false);
+
+                return true;
+
+            }
+        });
+
+        popupMenu.show();
+
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
         mPresenter.result(requestCode, resultCode);
     }
@@ -245,7 +279,7 @@ public class NotesFragment extends Fragment implements NotesContract.View {
                 mPresenter.clearMarkedNotes();
                 break;
             case R.id.menu_filter:
-//                showFilteringPopUpMenu();
+                showFilteringPopUpMenu();
                 break;
             case R.id.menu_refresh:
                 mPresenter.loadNotes(true);

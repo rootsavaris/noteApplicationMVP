@@ -12,4 +12,6 @@
     <string name="refresh">Refresh</string>
     <string name="note_marked">Note marked</string>
     <string name="marked_notes_cleared">Marked notes cleared</string>
+    <string name="nav_all">All</string>
+    <string name="nav_marked">Marked</string>
 </resources>
