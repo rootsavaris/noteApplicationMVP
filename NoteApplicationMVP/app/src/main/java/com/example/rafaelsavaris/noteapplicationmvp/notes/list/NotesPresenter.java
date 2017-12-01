@@ -111,7 +111,7 @@ public class NotesPresenter implements NotesContract.Presenter {
                     mView.setLoadingIndicator(false);
                 }
 
-                processNotes(notes);
+                processNotes(notesToShow);
 
             }
 
