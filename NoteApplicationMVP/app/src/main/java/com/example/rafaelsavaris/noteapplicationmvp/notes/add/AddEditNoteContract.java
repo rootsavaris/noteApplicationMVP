@@ -10,9 +10,27 @@ import com.example.rafaelsavaris.noteapplicationmvp.BaseView;
 public interface AddEditNoteContract {
 
     interface Presenter extends BasePresenter {
+
+        void saveNote(String title, String text);
+
+        void populateNote();
+
+        boolean isDataMissing();
+
     }
 
     interface View extends BaseView<Presenter> {
+
+        void showEmptyNotesError();
+
+        void showNotesList();
+
+        boolean isActive();
+
+        void setTitle(String title);
+
+        void setText(String text);
+
     }
 
 

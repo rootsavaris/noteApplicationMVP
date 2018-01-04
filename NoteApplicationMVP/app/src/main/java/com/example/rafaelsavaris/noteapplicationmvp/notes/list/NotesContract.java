@@ -28,6 +28,10 @@ public class NotesContract {
 
         void clearMarkedNotes();
 
+        void addNewNote();
+
+        void openNoteDetails(Note note);
+
     }
 
     interface View extends BaseView<Presenter> {
@@ -54,11 +58,12 @@ public class NotesContract {
 
         void showFilteringPopUpMenu();
 
-        void onActivityResult(int requestCode, int resultCode, Intent data);
+        void showAddNewNote();
 
+        void showSuccessfullySavedMessage();
 
+        void showNoteDetailUi(String noteId);
 
-
-        }
+    }
 
 }

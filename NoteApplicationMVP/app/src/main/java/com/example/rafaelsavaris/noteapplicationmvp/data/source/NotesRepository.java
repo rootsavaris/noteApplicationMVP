@@ -14,42 +14,42 @@ import java.util.Map;
 
 public class NotesRepository implements NotesDatasource {
 
-    private static NotesRepository instance = null;
+    private static NotesRepository mInstance = null;
 
-    private final NotesDatasource notesRemote;
+    private final NotesDatasource mNotesRemote;
 
-    private final NotesDatasource notesLocal;
+    private final NotesDatasource mNotesLocal;
 
-    Map<String, Note> cachedNotes;
+    Map<String, Note> mCachedNotes;
 
     boolean cacheIsDirty = false;
 
     public static NotesRepository getInstance(NotesDatasource notesRemote, NotesDatasource notesLocal) {
 
-        if (instance == null) {
-            instance = new NotesRepository(notesRemote, notesLocal);
+        if (mInstance == null) {
+            mInstance = new NotesRepository(notesRemote, notesLocal);
         }
 
-        return instance;
+        return mInstance;
 
     }
 
     private NotesRepository(NotesDatasource notesRemote, NotesDatasource notesLocal) {
-        this.notesRemote = notesRemote;
-        this.notesLocal = notesLocal;
+        this.mNotesRemote = notesRemote;
+        this.mNotesLocal = notesLocal;
     }
 
     public static void destroyInstance() {
-        instance = null;
+        mInstance = null;
     }
 
 
     @Override
     public void getNotes(final LoadNotesCallBack loadNotesCallBack) {
 
-        if (cachedNotes != null && !cacheIsDirty) {
+        if (mCachedNotes != null && !cacheIsDirty) {
 
-            loadNotesCallBack.onNotesLoaded(new ArrayList<>(cachedNotes.values()));
+            loadNotesCallBack.onNotesLoaded(new ArrayList<>(mCachedNotes.values()));
             return;
 
         }
@@ -58,7 +58,7 @@ public class NotesRepository implements NotesDatasource {
             getNotesFromRemoteDataSource(loadNotesCallBack);
         } else {
 
-            notesLocal.getNotes(new LoadNotesCallBack() {
+            mNotesLocal.getNotes(new LoadNotesCallBack() {
                 @Override
                 public void onNotesLoaded(List<Note> notes) {
                     refreshCache(notes);
@@ -76,11 +76,76 @@ public class NotesRepository implements NotesDatasource {
     }
 
     @Override
+    public void getNote(final String noteId, final GetNoteCallBack getNoteCallBack) {
+
+        Note cachedNote = getNoteWithId(noteId);
+
+        if (cachedNote != null){
+            getNoteCallBack.onNoteLoaded(cachedNote);
+            return;
+        }
+
+        mNotesLocal.getNote(noteId, new GetNoteCallBack() {
+
+            @Override
+            public void onNoteLoaded(Note note) {
+
+                if (mCachedNotes == null){
+                    mCachedNotes = new LinkedHashMap<>();
+                }
+
+                mCachedNotes.put(note.getId(), note);
+
+                getNoteCallBack.onNoteLoaded(note);
+
+            }
+
+            @Override
+            public void onDataNotAvailable() {
+
+                mNotesRemote.getNote(noteId, new GetNoteCallBack() {
+
+                    @Override
+                    public void onNoteLoaded(Note note) {
+
+                        if (mCachedNotes == null){
+                            mCachedNotes = new LinkedHashMap<>();
+                        }
+
+                        mCachedNotes.put(note.getId(), note);
+
+                        getNoteCallBack.onNoteLoaded(note);
+
+                    }
+
+                    @Override
+                    public void onDataNotAvailable() {
+                        getNoteCallBack.onDataNotAvailable();
+                    }
+                });
+
+            }
+        });
+
+    }
+
+    @Override
     public void deleteAllNotes() {
     }
 
     @Override
     public void saveNote(Note note) {
+
+        mNotesRemote.saveNote(note);
+
+        mNotesLocal.saveNote(note);
+
+        if (mCachedNotes == null){
+            mCachedNotes = new LinkedHashMap<>();
+        }
+
+        mCachedNotes.put(note.getId(), note);
+
     }
 
     @Override
@@ -91,30 +156,35 @@ public class NotesRepository implements NotesDatasource {
     @Override
     public void markNote(Note note) {
 
-        notesLocal.markNote(note);
-        notesRemote.markNote(note);
+        mNotesLocal.markNote(note);
+        mNotesRemote.markNote(note);
 
         Note markedNote = new Note(note.getTitle(), note.getText(), note.getId(), !note.isMarked());
 
-        if (cachedNotes == null){
-            cachedNotes = new LinkedHashMap<>();
+        if (mCachedNotes == null){
+            mCachedNotes = new LinkedHashMap<>();
         }
 
-        cachedNotes.put(markedNote.getId(), markedNote);
+        mCachedNotes.put(markedNote.getId(), markedNote);
 
+    }
+
+    @Override
+    public void markNote(String noteId) {
+        markNote(getNoteWithId(noteId));
     }
 
     @Override
     public void clearMarkedNotes() {
 
-        notesRemote.clearMarkedNotes();
-        notesLocal.clearMarkedNotes();
+        mNotesRemote.clearMarkedNotes();
+        mNotesLocal.clearMarkedNotes();
 
-        if (cachedNotes == null){
-            cachedNotes = new LinkedHashMap<>();
+        if (mCachedNotes == null){
+            mCachedNotes = new LinkedHashMap<>();
         }
 
-        Iterator<Map.Entry<String, Note>> it = cachedNotes.entrySet().iterator();
+        Iterator<Map.Entry<String, Note>> it = mCachedNotes.entrySet().iterator();
 
         while (it.hasNext()){
 
@@ -128,15 +198,25 @@ public class NotesRepository implements NotesDatasource {
 
     }
 
+    @Override
+    public void deleteNote(String noteId) {
+
+        mNotesRemote.deleteNote(noteId);
+        mNotesLocal.deleteNote(noteId);
+
+        mCachedNotes.remove(noteId);
+
+    }
+
     private void getNotesFromRemoteDataSource(final LoadNotesCallBack loadNotesCallBack) {
 
-        notesRemote.getNotes(new LoadNotesCallBack() {
+        mNotesRemote.getNotes(new LoadNotesCallBack() {
 
             @Override
             public void onNotesLoaded(List<Note> notes) {
                 refreshCache(notes);
                 refreshLocalDataSource(notes);
-                loadNotesCallBack.onNotesLoaded(new ArrayList<Note>(cachedNotes.values()));
+                loadNotesCallBack.onNotesLoaded(new ArrayList<Note>(mCachedNotes.values()));
             }
 
             @Override
@@ -149,14 +229,14 @@ public class NotesRepository implements NotesDatasource {
 
     private void refreshCache(List<Note> notes) {
 
-        if (cachedNotes == null) {
-            cachedNotes = new LinkedHashMap<>();
+        if (mCachedNotes == null) {
+            mCachedNotes = new LinkedHashMap<>();
         }
 
-        cachedNotes.clear();
+        mCachedNotes.clear();
 
         for (Note note : notes) {
-            cachedNotes.put(note.getId(), note);
+            mCachedNotes.put(note.getId(), note);
         }
 
         cacheIsDirty = false;
@@ -165,14 +245,22 @@ public class NotesRepository implements NotesDatasource {
 
     private void refreshLocalDataSource(List<Note> notes) {
 
-        notesLocal.deleteAllNotes();
+        mNotesLocal.deleteAllNotes();
 
         for (Note note : notes) {
-            notesLocal.saveNote(note);
+            mNotesLocal.saveNote(note);
         }
 
     }
 
+    private Note getNoteWithId(String id) {
 
+        if (mCachedNotes == null || mCachedNotes.isEmpty()) {
+            return null;
+        } else {
+            return mCachedNotes.get(id);
+        }
+
+    }
 
 }

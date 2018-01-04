@@ -2,12 +2,13 @@ package com.example.rafaelsavaris.noteapplicationmvp.notes.add;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
+import com.example.rafaelsavaris.noteapplicationmvp.Injection;
 import com.example.rafaelsavaris.noteapplicationmvp.R;
+import com.example.rafaelsavaris.noteapplicationmvp.utils.ActivityUtils;
 
 /**
  * Created by rafael.savaris on 01/12/2017.
@@ -15,18 +16,22 @@ import com.example.rafaelsavaris.noteapplicationmvp.R;
 
 public class AddEditNoteActivity extends AppCompatActivity {
 
-    public static final String SAVED_INSTANCE_NOTE = "SAVED_INSTANCE_NOTE";
+    public static final String SHOULD_LOAD_DATA_FROM_REPO_KEY = "SHOULD_LOAD_DATA_FROM_REPO_KEY";
+
+    public static final int REQUEST_ADD_NOTE = 1;
 
     private ActionBar mActionBar;
+
+    private AddEditNotePresenter mAddEditTaskPresenter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.add_note_activity);
+        setContentView(R.layout.add_edit_note_activity);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mActionBar = getSupportActionBar();
         mActionBar.setDisplayHomeAsUpEnabled(true);
@@ -34,8 +39,56 @@ public class AddEditNoteActivity extends AppCompatActivity {
 
         AddEditNoteFragment addEditNoteFragment = (AddEditNoteFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
 
-        String noteId = getIntent().getStringExtra()
+        String noteId = getIntent().getStringExtra(AddEditNoteFragment.NOTE_ID);
 
+        setToolbarTitle(noteId);
+
+        if (addEditNoteFragment == null) {
+
+            addEditNoteFragment = AddEditNoteFragment.newInstance();
+
+            ActivityUtils.addFragmentToActivity(getSupportFragmentManager(),
+                    addEditNoteFragment, R.id.contentFrame);
+        }
+
+        boolean shouldLoadDataFromRepo = true;
+
+        if (savedInstanceState != null) {
+            shouldLoadDataFromRepo = savedInstanceState.getBoolean(SHOULD_LOAD_DATA_FROM_REPO_KEY);
+        }
+
+
+        mAddEditTaskPresenter = new AddEditNotePresenter(
+                noteId,
+                Injection.providesNotesRepository(getApplicationContext()),
+                addEditNoteFragment,
+                shouldLoadDataFromRepo);
 
     }
+
+    private void setToolbarTitle(@Nullable String noteId) {
+
+        if(noteId == null) {
+            mActionBar.setTitle(R.string.add_note);
+        } else {
+            mActionBar.setTitle(R.string.edit_note);
+        }
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        // Save the state so that next time we know if we need to refresh data.
+        outState.putBoolean(SHOULD_LOAD_DATA_FROM_REPO_KEY, mAddEditTaskPresenter.isDataMissing());
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
+
+
+
 }

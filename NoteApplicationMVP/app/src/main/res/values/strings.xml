@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">NoteApplicationMVP</string>
+    <string name="add_note">New Note</string>
+    <string name="edit_note">Edit Note</string>
     <string name="navigation_view_header_title">Note App Simple MVP</string>
     <string name="no_notes_all">You have no Notes!</string>
     <string name="no_notes_add">Add a Note item +</string>
@@ -14,4 +16,11 @@
     <string name="marked_notes_cleared">Marked notes cleared</string>
     <string name="nav_all">All</string>
     <string name="nav_marked">Marked</string>
+    <string name="title_hint">Title</string>
+    <string name="text_hint">Enter your Text here.</string>
+    <string name="empty_note_text">Note cannot be empty</string>
+    <string name="successfully_saved_note_message">Note saved</string>
+    <string name="no_data">No data</string>
+    <string name="loading">LOADING</string>
+    <string name="menu_delete_note">Delete note</string>
 </resources>

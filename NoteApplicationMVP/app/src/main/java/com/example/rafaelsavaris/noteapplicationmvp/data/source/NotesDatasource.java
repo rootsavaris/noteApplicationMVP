@@ -18,7 +18,17 @@ public interface NotesDatasource {
 
     }
 
+    interface GetNoteCallBack{
+
+        void onNoteLoaded(Note note);
+
+        void onDataNotAvailable();
+
+    }
+
     void getNotes(LoadNotesCallBack loadNotesCallBack);
+
+    void getNote(String noteId, GetNoteCallBack getNoteCallBack);
 
     void deleteAllNotes();
 
@@ -28,6 +38,10 @@ public interface NotesDatasource {
 
     void markNote(Note note);
 
+    void markNote(String noteId);
+
     void clearMarkedNotes();
+
+    void deleteNote(String noteId);
 
 }

@@ -60,6 +60,22 @@ public class NotesRemoteDataSource implements NotesDatasource {
     }
 
     @Override
+    public void getNote(String noteId, final GetNoteCallBack getNoteCallBack) {
+
+        final Note note = NOTES_DATA.get(noteId);
+
+        Handler handler = new Handler();
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                getNoteCallBack.onNoteLoaded(note);
+            }
+        }, TIME_SERVICE);
+
+    }
+
+    @Override
     public void deleteAllNotes() {
         NOTES_DATA.clear();
     }
@@ -82,6 +98,9 @@ public class NotesRemoteDataSource implements NotesDatasource {
     }
 
     @Override
+    public void markNote(String noteId) {}
+
+    @Override
     public void clearMarkedNotes() {
 
         Iterator<Map.Entry<String, Note>> it = NOTES_DATA.entrySet().iterator();
@@ -95,6 +114,13 @@ public class NotesRemoteDataSource implements NotesDatasource {
             }
 
         }
+
+    }
+
+    @Override
+    public void deleteNote(String noteId) {
+
+        NOTES_DATA.remove(noteId);
 
     }
 

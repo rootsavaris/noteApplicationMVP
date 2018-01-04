@@ -64,8 +64,9 @@ public class NotesLocalDataSource implements NotesDatasource {
                 String title = c.getString(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE));
                 String description =
                         c.getString(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION));
+                boolean marked = c.getInt(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED)) == 1;
 
-                Note note = new Note(title, description, itemId);
+                Note note = new Note(title, description, itemId, marked);
 
                 notes.add(note);
 
@@ -82,6 +83,55 @@ public class NotesLocalDataSource implements NotesDatasource {
             loadNotesCallBack.onDataNotAvailable();
         } else {
             loadNotesCallBack.onNotesLoaded(notes);
+        }
+
+    }
+
+    @Override
+    public void getNote(String noteId, GetNoteCallBack getNoteCallBack) {
+
+        SQLiteDatabase database = notesDataBaseHelper.getReadableDatabase();
+
+        String[] projection = {
+                NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID,
+                NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE,
+                NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION,
+                NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED
+        };
+
+        String selection = NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
+
+        String[] selectionArgs = { noteId };
+
+        Cursor cursor = database.query(
+                NotesPersistenceContract.NotesEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
+
+        Note note = null;
+
+        if (cursor != null && cursor.getCount() > 0){
+
+            cursor.moveToFirst();
+
+            String itemId = cursor.getString(cursor.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID));
+            String title = cursor.getString(cursor.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE));
+            String description =
+                    cursor.getString(cursor.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION));
+            boolean marked = cursor.getInt(cursor.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED)) == 1;
+
+            note = new Note(title, description, itemId, marked);
+
+        }
+
+        if (cursor != null){
+            cursor.close();
+        }
+
+        database.close();
+
+        if (note != null){
+            getNoteCallBack.onNoteLoaded(note);
+        } else {
+            getNoteCallBack.onDataNotAvailable();
         }
 
     }
@@ -137,6 +187,10 @@ public class NotesLocalDataSource implements NotesDatasource {
     }
 
     @Override
+    public void markNote(String noteId) {
+    }
+
+    @Override
     public void clearMarkedNotes() {
 
         SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
@@ -144,6 +198,21 @@ public class NotesLocalDataSource implements NotesDatasource {
         String selection = NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED + " LIKE ?";
 
         String[] selectionArgs = { "1" };
+
+        database.delete(NotesPersistenceContract.NotesEntry.TABLE_NAME, selection, selectionArgs);
+
+        database.close();
+
+    }
+
+    @Override
+    public void deleteNote(String noteId) {
+
+        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+
+        String selection = NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
+
+        String[] selectionArgs = { noteId };
 
         database.delete(NotesPersistenceContract.NotesEntry.TABLE_NAME, selection, selectionArgs);
 

@@ -1,8 +1,11 @@
 package com.example.rafaelsavaris.noteapplicationmvp.notes.list;
 
+import android.app.Activity;
+
 import com.example.rafaelsavaris.noteapplicationmvp.data.model.Note;
 import com.example.rafaelsavaris.noteapplicationmvp.data.source.NotesDatasource;
 import com.example.rafaelsavaris.noteapplicationmvp.data.source.NotesRepository;
+import com.example.rafaelsavaris.noteapplicationmvp.notes.add.AddEditNoteActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +41,10 @@ public class NotesPresenter implements NotesContract.Presenter {
     @Override
     public void result(int requestCode, int resultCode) {
 
+        if (AddEditNoteActivity.REQUEST_ADD_NOTE == requestCode && Activity.RESULT_OK == resultCode){
+            mView.showSuccessfullySavedMessage();
+        }
+
     }
 
     @Override
@@ -66,6 +73,16 @@ public class NotesPresenter implements NotesContract.Presenter {
         mRepository.clearMarkedNotes();
         mView.showNotesCleared();
         loadNotes(false, false);
+    }
+
+    @Override
+    public void addNewNote() {
+        mView.showAddNewNote();
+    }
+
+    @Override
+    public void openNoteDetails(Note note) {
+        mView.showNoteDetailUi(note.getId());
     }
 
     private void loadNotes(boolean forceUpdate, final boolean showLoading){

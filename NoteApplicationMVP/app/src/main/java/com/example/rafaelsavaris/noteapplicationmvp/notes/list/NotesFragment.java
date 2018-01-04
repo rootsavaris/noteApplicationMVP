@@ -24,6 +24,8 @@ import android.widget.TextView;
 
 import com.example.rafaelsavaris.noteapplicationmvp.R;
 import com.example.rafaelsavaris.noteapplicationmvp.data.model.Note;
+import com.example.rafaelsavaris.noteapplicationmvp.notes.add.AddEditNoteActivity;
+import com.example.rafaelsavaris.noteapplicationmvp.notes.detail.DetailNoteActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,7 +91,7 @@ public class NotesFragment extends Fragment implements NotesContract.View {
         mNoNoteAddView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                showAddTask();
+                showAddNewNote();
             }
         });
 
@@ -101,7 +103,7 @@ public class NotesFragment extends Fragment implements NotesContract.View {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                mPresenter.addNewTask();
+                mPresenter.addNewNote();
             }
         });
 
@@ -172,7 +174,7 @@ public class NotesFragment extends Fragment implements NotesContract.View {
 
     @Override
     public void showNoNotes() {
-        showNoNotesViews(getString(R.string.no_notes_all), R.drawable.ic_assignment_turned_in_24dp, false);
+        showNoNotesViews(getString(R.string.no_notes_all), R.drawable.ic_assignment_turned_in_24dp, true);
     }
 
     @Override
@@ -244,10 +246,29 @@ public class NotesFragment extends Fragment implements NotesContract.View {
         mPresenter.result(requestCode, resultCode);
     }
 
+    @Override
+    public void showAddNewNote() {
+        Intent intent = new Intent(getContext(), AddEditNoteActivity.class);
+        startActivityForResult(intent, AddEditNoteActivity.REQUEST_ADD_NOTE);
+    }
+
+    @Override
+    public void showSuccessfullySavedMessage() {
+        showMessage(getString(R.string.successfully_saved_note_message));
+    }
+
+    @Override
+    public void showNoteDetailUi(String noteId) {
+        Intent intent = new Intent(getContext(), DetailNoteActivity.class);
+        intent.putExtra(DetailNoteActivity.NOTE_ID, noteId);
+        startActivity(intent);
+    }
+
     NotesItemListener notesItemListener = new NotesItemListener() {
 
         @Override
         public void onNoteClick(Note clickedNote) {
+            mPresenter.openNoteDetails(clickedNote);
         }
 
         @Override
