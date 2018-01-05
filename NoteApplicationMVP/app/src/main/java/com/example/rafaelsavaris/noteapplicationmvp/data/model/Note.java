@@ -1,5 +1,9 @@
 package com.example.rafaelsavaris.noteapplicationmvp.data.model;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -11,54 +15,64 @@ import java.util.UUID;
  * Created by rafael.savaris on 09/05/2017.
  */
 
-public class Note {
+@Entity(tableName = "notes")
+public final class Note {
 
-    private final String id;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(name = "id")
+    private final String mId;
 
-    private final String title;
+    @ColumnInfo(name = "title")
+    private final String mTitle;
 
-    private final String text;
+    @ColumnInfo(name = "descrption")
+    private final String mText;
 
-    private final boolean marked;
+    @ColumnInfo(name = "marked")
+    private final boolean mMarked;
 
-    public Note(String title, String text, String id, boolean market) {
-        this.id = id;
-        this.title = title;
-        this.text = text;
-        this.marked = market;
+    public Note(String title, String text, String id, boolean marked) {
+        mId = id;
+        mTitle = title;
+        mText = text;
+        mMarked = marked;
     }
 
+    @Ignore
     public Note(String title, String text, boolean market) {
         this(title, text, UUID.randomUUID().toString(), market);
     }
 
+    @Ignore
     public Note(String title, String text, String id) {
         this(title, text, id, false);
     }
 
+    @Ignore
     public Note(String title, String text) {
         this(title, text, UUID.randomUUID().toString(), false);
     }
 
     public String getId() {
-        return id;
+        return mId;
     }
 
     public String getTitle() {
-        return title;
+        return mTitle;
     }
 
     public String getText() {
-        return text;
+        return mText;
     }
 
     public boolean isMarked() {
-        return marked;
+        return mMarked;
     }
 
     public boolean isEmpty() {
-        return Strings.isNullOrEmpty(title) &&
-                Strings.isNullOrEmpty(text);
+        return Strings.isNullOrEmpty(mTitle) &&
+                Strings.isNullOrEmpty(mText);
     }
 
 

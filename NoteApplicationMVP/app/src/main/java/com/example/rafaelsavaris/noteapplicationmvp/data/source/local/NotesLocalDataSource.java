@@ -2,6 +2,7 @@ package com.example.rafaelsavaris.noteapplicationmvp.data.source.local;
 
 import com.example.rafaelsavaris.noteapplicationmvp.data.model.Note;
 import com.example.rafaelsavaris.noteapplicationmvp.data.source.NotesDatasource;
+import com.example.rafaelsavaris.noteapplicationmvp.utils.AppExecutors;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -22,144 +23,116 @@ import java.util.logging.LogRecord;
 
 public class NotesLocalDataSource implements NotesDatasource {
 
-    private static NotesLocalDataSource instance;
+    private static volatile NotesLocalDataSource mInstance;
 
-    private NotesDataBaseHelper notesDataBaseHelper;
+    private NoteDao mNoteDao;
 
-    private NotesLocalDataSource(Context context) {
-        notesDataBaseHelper = new NotesDataBaseHelper(context);
+    private AppExecutors mAppExecutors;
+
+    private NotesLocalDataSource(AppExecutors appExecutors, NoteDao noteDao) {
+        mAppExecutors = appExecutors;
+        mNoteDao = noteDao;
     }
 
-    public static NotesLocalDataSource getInstance(Context context) {
+    public static NotesLocalDataSource getInstance(AppExecutors appExecutors, NoteDao noteDao) {
 
-        if (instance == null) {
-            instance = new NotesLocalDataSource(context);
+        if (mInstance == null) {
+
+            synchronized (NotesLocalDataSource.class){
+
+                if (mInstance == null){
+                    mInstance = new NotesLocalDataSource(appExecutors, noteDao);
+                }
+
+            }
+
         }
 
-        return instance;
+        return mInstance;
 
     }
 
     @Override
     public void getNotes(final LoadNotesCallBack loadNotesCallBack) {
 
-        List<Note> notes = new ArrayList<>();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
 
-        SQLiteDatabase db = notesDataBaseHelper.getReadableDatabase();
+                final List<Note> notes = mNoteDao.getNotes();
 
-        String[] projection = {
-                NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID,
-                NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE,
-                NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION
+                mAppExecutors.getMainThread().execute(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        if (notes.isEmpty()){
+                            loadNotesCallBack.onDataNotAvailable();
+                        } else{
+                            loadNotesCallBack.onNotesLoaded(notes);
+                        }
+
+                    }
+                });
+            }
         };
 
-        Cursor c = db.query(
-                NotesPersistenceContract.NotesEntry.TABLE_NAME, projection, null, null, null, null, null);
-
-        if (c != null && c.getCount() > 0) {
-
-            while (c.moveToNext()) {
-
-                String itemId = c.getString(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID));
-                String title = c.getString(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE));
-                String description =
-                        c.getString(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION));
-                boolean marked = c.getInt(c.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED)) == 1;
-
-                Note note = new Note(title, description, itemId, marked);
-
-                notes.add(note);
-
-            }
-        }
-
-        if (c != null) {
-            c.close();
-        }
-
-        db.close();
-
-        if (notes.isEmpty()){
-            loadNotesCallBack.onDataNotAvailable();
-        } else {
-            loadNotesCallBack.onNotesLoaded(notes);
-        }
+        mAppExecutors.getDiskIO().execute(runnable);
 
     }
 
     @Override
-    public void getNote(String noteId, GetNoteCallBack getNoteCallBack) {
+    public void getNote(final String noteId, final GetNoteCallBack getNoteCallBack) {
 
-        SQLiteDatabase database = notesDataBaseHelper.getReadableDatabase();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
 
-        String[] projection = {
-                NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID,
-                NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE,
-                NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION,
-                NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED
+                final Note note = mNoteDao.getNoteById(noteId);
+
+                mAppExecutors.getMainThread().execute(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        if (note != null){
+                            getNoteCallBack.onNoteLoaded(note);
+                        } else {
+                            getNoteCallBack.onDataNotAvailable();
+                        }
+
+                    }
+                });
+
+            }
         };
 
-        String selection = NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
-
-        String[] selectionArgs = { noteId };
-
-        Cursor cursor = database.query(
-                NotesPersistenceContract.NotesEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
-
-        Note note = null;
-
-        if (cursor != null && cursor.getCount() > 0){
-
-            cursor.moveToFirst();
-
-            String itemId = cursor.getString(cursor.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID));
-            String title = cursor.getString(cursor.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE));
-            String description =
-                    cursor.getString(cursor.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION));
-            boolean marked = cursor.getInt(cursor.getColumnIndexOrThrow(NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED)) == 1;
-
-            note = new Note(title, description, itemId, marked);
-
-        }
-
-        if (cursor != null){
-            cursor.close();
-        }
-
-        database.close();
-
-        if (note != null){
-            getNoteCallBack.onNoteLoaded(note);
-        } else {
-            getNoteCallBack.onDataNotAvailable();
-        }
+        mAppExecutors.getDiskIO().execute(runnable);
 
     }
 
     @Override
     public void deleteAllNotes() {
 
+        /*
         SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
 
         database.delete(NotesPersistenceContract.NotesEntry.TABLE_NAME, null, null);
 
         database.close();
+        */
 
     }
 
     @Override
-    public void saveNote(Note note) {
+    public void saveNote(final Note note) {
 
-        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                mNoteDao.insertNote(note);
+            }
+        };
 
-        ContentValues values = new ContentValues();
-        values.put(NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID, note.getId());
-        values.put(NotesPersistenceContract.NotesEntry.COLUMN_NAME_TITLE, note.getTitle());
-        values.put(NotesPersistenceContract.NotesEntry.COLUMN_NAME_DESCRIPTION, note.getText());
-
-        database.insert(NotesPersistenceContract.NotesEntry.TABLE_NAME, null, values);
-
-        database.close();
+        mAppExecutors.getDiskIO().execute(runnable);
 
     }
 
@@ -168,21 +141,16 @@ public class NotesLocalDataSource implements NotesDatasource {
     }
 
     @Override
-    public void markNote(Note note) {
+    public void markNote(final Note note) {
 
-        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                mNoteDao.updateMarked(note.getId(), note.isMarked());
+            }
+        };
 
-        ContentValues values = new ContentValues();
-
-        values.put(NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED, true);
-
-        String selection = NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
-
-        String[] selectionsArgs = {note.getId()};
-
-        database.update(NotesPersistenceContract.NotesEntry.TABLE_NAME, values, selection, selectionsArgs);
-
-        database.close();
+        mAppExecutors.getDiskIO().execute(runnable);
 
     }
 
@@ -193,30 +161,28 @@ public class NotesLocalDataSource implements NotesDatasource {
     @Override
     public void clearMarkedNotes() {
 
-        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                mNoteDao.deleteMarkedNotes();
+            }
+        };
 
-        String selection = NotesPersistenceContract.NotesEntry.COLUMN_NAME_MARKED + " LIKE ?";
-
-        String[] selectionArgs = { "1" };
-
-        database.delete(NotesPersistenceContract.NotesEntry.TABLE_NAME, selection, selectionArgs);
-
-        database.close();
+        mAppExecutors.getDiskIO().execute(runnable);
 
     }
 
     @Override
-    public void deleteNote(String noteId) {
+    public void deleteNote(final String noteId) {
 
-        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                mNoteDao.deleteNoteById(noteId);
+            }
+        };
 
-        String selection = NotesPersistenceContract.NotesEntry.COLUMN_NAME_ENTRY_ID + " LIKE ?";
-
-        String[] selectionArgs = { noteId };
-
-        database.delete(NotesPersistenceContract.NotesEntry.TABLE_NAME, selection, selectionArgs);
-
-        database.close();
+        mAppExecutors.getDiskIO().execute(runnable);
 
     }
 
