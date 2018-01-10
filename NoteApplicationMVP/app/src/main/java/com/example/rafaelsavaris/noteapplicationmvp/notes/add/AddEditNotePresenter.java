@@ -11,6 +11,8 @@ import com.example.rafaelsavaris.noteapplicationmvp.notes.list.NotesContract;
 
 public class AddEditNotePresenter implements AddEditNoteContract.Presenter, NotesDatasource.GetNoteCallBack {
 
+    private boolean mIsMarked = false;
+
     private final NotesDatasource mNotesRepository;
 
     private final AddEditNoteContract.View mView;
@@ -51,7 +53,6 @@ public class AddEditNotePresenter implements AddEditNoteContract.Presenter, Note
 
     public void populateNote(){
         mNotesRepository.getNote(mNoteId, this);
-
     }
 
     public boolean isDataMissing() {
@@ -68,6 +69,7 @@ public class AddEditNotePresenter implements AddEditNoteContract.Presenter, Note
         if (mView.isActive()){
             mView.setTitle(note.getTitle());
             mView.setText(note.getText());
+            mIsMarked = note.isMarked();
         }
 
         mIsDataMissing = false;
@@ -98,7 +100,7 @@ public class AddEditNotePresenter implements AddEditNoteContract.Presenter, Note
 
     private void updateNote(String title, String text){
 
-        mNotesRepository.saveNote(new Note(title, text, mNoteId));
+        mNotesRepository.saveNote(new Note(title, text, mNoteId, mIsMarked));
 
         mView.showNotesList();
 
