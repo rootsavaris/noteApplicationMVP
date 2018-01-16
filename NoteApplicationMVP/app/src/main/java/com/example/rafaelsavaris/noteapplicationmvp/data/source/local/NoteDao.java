@@ -38,4 +38,7 @@ public interface NoteDao {
     @Query("DELETE FROM notes WHERE marked = 1")
     int deleteMarkedNotes();
 
+    @Query("DELETE FROM notes")
+    void deleteNotes();
+
 }

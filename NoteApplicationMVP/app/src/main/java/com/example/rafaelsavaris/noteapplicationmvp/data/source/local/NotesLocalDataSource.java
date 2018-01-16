@@ -112,13 +112,14 @@ public class NotesLocalDataSource implements NotesDatasource {
     @Override
     public void deleteAllNotes() {
 
-        /*
-        SQLiteDatabase database = notesDataBaseHelper.getWritableDatabase();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                mNoteDao.deleteNotes();
+            }
+        };
 
-        database.delete(NotesPersistenceContract.NotesEntry.TABLE_NAME, null, null);
-
-        database.close();
-        */
+        mAppExecutors.getDiskIO().execute(runnable);
 
     }
 

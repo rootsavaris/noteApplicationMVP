@@ -1,8 +1,6 @@
 package com.example.rafaelsavaris.noteapplicationmvp.data.source;
 
 import com.example.rafaelsavaris.noteapplicationmvp.data.model.Note;
-import com.example.rafaelsavaris.noteapplicationmvp.data.source.NotesDatasource;
-import com.example.rafaelsavaris.noteapplicationmvp.data.source.NotesRepository;
 import com.google.common.collect.Lists;
 
 import org.junit.After;
@@ -15,10 +13,13 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 
+import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.intThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -54,6 +55,9 @@ public class NotesRepositoryTest {
 
     @Captor
     private ArgumentCaptor<NotesDatasource.LoadNotesCallBack> mNotesCallBackArgumentCaptor;
+
+    @Captor
+    private ArgumentCaptor<NotesDatasource.GetNoteCallBack> mGetNoteCallBackArgumentCaptor;
 
     @Before
     public void setup(){
@@ -120,7 +124,167 @@ public class NotesRepositoryTest {
 
     }
 
+    @Test
+    public void markNoteId_marksNoteServiceApiUpdatesCache(){
 
+        Note note = new Note(NOTE_TITLE, NOTE_TEXT);
+
+        mNotesRepository.saveNote(note);
+
+        mNotesRepository.markNote(note.getId());
+
+        verify(mNotesDatasourceRemote).markNote(note);
+
+        verify(mNotesDatasourceLocal).markNote(note);
+
+        assertThat(mNotesRepository.mCachedNotes.size(), is(1));
+
+        assertThat(mNotesRepository.mCachedNotes.get(note.getId()).isMarked(), is(true));
+
+    }
+
+    @Test
+    public void getNote_requestsSingleNoteFromLocalDatasource(){
+
+        mNotesRepository.getNote(NOTE_TITLE, mGetNoteCallBack);
+
+        verify(mNotesDatasourceLocal).getNote(eq(NOTE_TITLE), any(NotesDatasource.GetNoteCallBack.class));
+
+    }
+
+    @Test
+    public void deleteMarkedNotes_deleteMarkedNotesToServiceApiUpdatesCache(){
+
+        Note note = new Note(NOTE_TITLE, NOTE_TEXT, true);
+
+        Note note2 = new Note(NOTE_TITLE2, NOTE_TEXT2);
+
+        Note note3 = new Note(NOTE_TITLE3, NOTE_TEXT3, true);
+
+        mNotesRepository.saveNote(note);
+        mNotesRepository.saveNote(note2);
+        mNotesRepository.saveNote(note3);
+
+        mNotesRepository.clearMarkedNotes();
+
+        verify(mNotesDatasourceRemote).clearMarkedNotes();
+
+        verify(mNotesDatasourceLocal).clearMarkedNotes();
+
+        assertThat(mNotesRepository.mCachedNotes.size(), is(1));
+        assertTrue(!mNotesRepository.mCachedNotes.get(note2.getId()).isMarked());
+        assertThat(mNotesRepository.mCachedNotes.get(note2.getId()).getTitle(), is(NOTE_TITLE2));
+
+    }
+
+    @Test
+    public void deleteAllNotes_deleteNotesToServiceApiUpdatesCache(){
+
+        Note note = new Note(NOTE_TITLE, NOTE_TEXT, true);
+
+        Note note2 = new Note(NOTE_TITLE2, NOTE_TEXT2);
+
+        Note note3 = new Note(NOTE_TITLE3, NOTE_TEXT3, true);
+
+        mNotesRepository.saveNote(note);
+        mNotesRepository.saveNote(note2);
+        mNotesRepository.saveNote(note3);
+
+        mNotesRepository.deleteAllNotes();
+
+        verify(mNotesDatasourceRemote).deleteAllNotes();
+        verify(mNotesDatasourceLocal).deleteAllNotes();
+
+        assertThat(mNotesRepository.mCachedNotes.size(), is(0));
+
+    }
+
+    @Test
+    public void deleteNote_deleteNoteToServiceApiRemovedFromCache(){
+
+        Note note = new Note(NOTE_TITLE, NOTE_TEXT, true);
+
+        mNotesRepository.saveNote(note);
+
+        assertThat(mNotesRepository.mCachedNotes.containsKey(note.getId()), is(true));
+
+        mNotesRepository.deleteNote(note.getId());
+
+        verify(mNotesDatasourceRemote).deleteNote(note.getId());
+        verify(mNotesDatasourceLocal).deleteNote(note.getId());
+
+        assertThat(mNotesRepository.mCachedNotes.containsKey(note.getId()), is(false));
+
+    }
+
+    @Test
+    public void getNotesWithDirtyCache_notesAreRetrievedFromRemote(){
+
+        mNotesRepository.refreshNotes();
+
+        mNotesRepository.getNotes(mLoadNotesCallBack);
+
+        setNotesAvailable(mNotesDatasourceRemote, NOTES);
+
+        verify(mNotesDatasourceLocal, never()).getNotes(mLoadNotesCallBack);
+
+        verify(mLoadNotesCallBack).onNotesLoaded(NOTES);
+
+    }
+
+    @Test
+    public void getNotesWithLocalDatasourceUnavailable_notesAreRetrieveFromRemote(){
+
+        mNotesRepository.getNotes(mLoadNotesCallBack);
+
+        setNotesUnavailable(mNotesDatasourceLocal);
+
+        setNotesAvailable(mNotesDatasourceRemote, NOTES);
+
+        verify(mLoadNotesCallBack).onNotesLoaded(NOTES);
+
+    }
+
+    @Test
+    public void getNotesWithBothDataSourceUnavailable_firesOnDataUnavailable(){
+
+        mNotesRepository.getNotes(mLoadNotesCallBack);
+
+        setNotesUnavailable(mNotesDatasourceLocal);
+
+        setNotesUnavailable(mNotesDatasourceRemote);
+
+        verify(mLoadNotesCallBack).onDataNotAvailable();
+
+    }
+
+    @Test
+    public void getNoteWithBothDataSourceUnavailable_firesOnDataUnavailable(){
+
+        final String id = "111";
+
+        mNotesRepository.getNote(id, mGetNoteCallBack);
+
+        setNoteUnavailable(mNotesDatasourceLocal, id);
+
+        setNoteUnavailable(mNotesDatasourceRemote, id);
+
+        verify(mGetNoteCallBack).onDataNotAvailable();
+
+    }
+
+    @Test
+    public void getNotes_refreshesLocalDataSource(){
+
+        mNotesRepository.refreshNotes();
+
+        mNotesRepository.getNotes(mLoadNotesCallBack);
+
+        setNotesAvailable(mNotesDatasourceRemote, NOTES);
+
+        verify(mNotesDatasourceLocal, times(NOTES.size())).saveNote(any(Note.class));
+
+    }
 
     private void twoNotesLoadCallsToRepository(NotesDatasource.LoadNotesCallBack loadNotesCallBack){
 
@@ -137,5 +301,21 @@ public class NotesRepositoryTest {
         mNotesRepository.getNotes(loadNotesCallBack);
 
     }
+
+    private void setNotesAvailable(NotesDatasource notesDatasource, List<Note> notes){
+        verify(notesDatasource).getNotes(mNotesCallBackArgumentCaptor.capture());
+        mNotesCallBackArgumentCaptor.getValue().onNotesLoaded(notes);
+    }
+
+    private void setNotesUnavailable(NotesDatasource notesDatasource){
+        verify(notesDatasource).getNotes(mNotesCallBackArgumentCaptor.capture());
+        mNotesCallBackArgumentCaptor.getValue().onDataNotAvailable();
+    }
+
+    private void setNoteUnavailable(NotesDatasource notesDatasource, String noteId){
+        verify(notesDatasource).getNote(eq(noteId), mGetNoteCallBackArgumentCaptor.capture());
+        mGetNoteCallBackArgumentCaptor.getValue().onDataNotAvailable();
+    }
+
 
 }

@@ -131,6 +131,16 @@ public class NotesRepository implements NotesDatasource {
 
     @Override
     public void deleteAllNotes() {
+
+        mNotesRemote.deleteAllNotes();
+        mNotesLocal.deleteAllNotes();
+
+        if (mCachedNotes == null){
+            mCachedNotes = new LinkedHashMap<>();
+        }
+
+        mCachedNotes.clear();
+
     }
 
     @Override
