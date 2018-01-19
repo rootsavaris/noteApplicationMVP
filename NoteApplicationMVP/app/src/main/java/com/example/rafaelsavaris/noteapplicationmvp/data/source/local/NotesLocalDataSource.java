@@ -52,6 +52,10 @@ public class NotesLocalDataSource implements NotesDatasource {
 
     }
 
+    public static void clearInstance(){
+        mInstance = null;
+    }
+
     @Override
     public void getNotes(final LoadNotesCallBack loadNotesCallBack) {
 
@@ -147,7 +151,7 @@ public class NotesLocalDataSource implements NotesDatasource {
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                mNoteDao.updateMarked(note.getId(), note.isMarked());
+                mNoteDao.updateMarked(note.getId(), true);
             }
         };
 
@@ -157,6 +161,25 @@ public class NotesLocalDataSource implements NotesDatasource {
 
     @Override
     public void markNote(String noteId) {
+    }
+
+    @Override
+    public void unMarkNote(final Note note) {
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                mNoteDao.updateMarked(note.getId(), false);
+            }
+        };
+
+        mAppExecutors.getDiskIO().execute(runnable);
+
+    }
+
+    @Override
+    public void unMarkNote(String noteId) {
+
     }
 
     @Override

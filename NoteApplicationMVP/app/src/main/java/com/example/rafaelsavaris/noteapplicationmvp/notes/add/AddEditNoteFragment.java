@@ -61,7 +61,7 @@ public class AddEditNoteFragment extends Fragment implements AddEditNoteContract
 
         super.onActivityCreated(savedInstanceState);
 
-        FloatingActionButton fab = getActivity().findViewById(R.id.fab_edit_task_done);
+        FloatingActionButton fab = getActivity().findViewById(R.id.fab_add_note_done);
 
         fab.setImageResource(R.drawable.ic_done);
 

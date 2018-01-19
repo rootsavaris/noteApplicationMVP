@@ -4,6 +4,7 @@
 -keep class android.support.v4.widget.DrawerLayout { *; }
 -keep class android.support.test.espresso.IdlingResource { *; }
 -keep class android.support.test.espresso.IdlingRegistry { *; }
+-keep public interface android.support.test.espresso.IdlingResource$ResourceCallback {*;}
 -keep class com.google.common.base.Preconditions { *; }
 -keep class android.arch.** { *; }
 

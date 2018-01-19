@@ -156,6 +156,22 @@ public class DetailNotePresenterTest {
     }
 
     @Test
+    public void unMarkNote(){
+
+        mDetailNotePresenter = new DetailNotePresenter(NOTE.getId(), mNotesRepository, mView);
+
+        mDetailNotePresenter.start();
+
+        mDetailNotePresenter.unMarkNote();
+
+        verify(mNotesRepository).unMarkNote(NOTE.getId());
+
+        verify(mView).showNoteUnMarked();
+
+    }
+
+
+    @Test
     public void showNoteWhenEditing(){
 
         mDetailNotePresenter = new DetailNotePresenter(NOTE.getId(), mNotesRepository, mView);

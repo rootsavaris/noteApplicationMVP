@@ -40,6 +40,10 @@ public interface NotesDatasource {
 
     void markNote(String noteId);
 
+    void unMarkNote(Note note);
+
+    void unMarkNote(String noteId);
+
     void clearMarkedNotes();
 
     void deleteNote(String noteId);

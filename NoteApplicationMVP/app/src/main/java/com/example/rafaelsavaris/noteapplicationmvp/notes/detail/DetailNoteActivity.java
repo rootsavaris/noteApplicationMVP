@@ -8,8 +8,6 @@ import android.support.v7.widget.Toolbar;
 
 import com.example.rafaelsavaris.noteapplicationmvp.Injection;
 import com.example.rafaelsavaris.noteapplicationmvp.R;
-import com.example.rafaelsavaris.noteapplicationmvp.notes.add.AddEditNoteFragment;
-import com.example.rafaelsavaris.noteapplicationmvp.notes.add.AddEditNotePresenter;
 import com.example.rafaelsavaris.noteapplicationmvp.utils.ActivityUtils;
 
 /**

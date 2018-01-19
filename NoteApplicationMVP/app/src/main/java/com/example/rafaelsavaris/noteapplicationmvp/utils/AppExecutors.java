@@ -20,7 +20,6 @@ public class AppExecutors {
     private final Executor mMainThread;
 
     @VisibleForTesting
-
     public AppExecutors(Executor diskIO, Executor netWorkIO, Executor mainThread) {
         mDiskIO = diskIO;
         mNetWorkIO = netWorkIO;

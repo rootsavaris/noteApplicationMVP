@@ -15,6 +15,8 @@ public interface DetailNoteContract {
 
         void markNote();
 
+        void unMarkNote();
+
         void deleteNote();
 
     }
@@ -40,6 +42,8 @@ public interface DetailNoteContract {
         void showEditNote(String noteId);
 
         void showNoteMarked();
+
+        void showNoteUnMarked();
 
         void showNoteDeleted();
 

@@ -1,9 +1,5 @@
 package com.example.rafaelsavaris.noteapplicationmvp.notes.list;
 
-import android.support.annotation.NonNull;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,8 +15,6 @@ public class NotesActivity extends AppCompatActivity {
 
     private static final String CURRENT_FILTER_KEY = "CURRENT_FILTER_KEY";
 
-    private DrawerLayout drawerLayout;
-
     private NotesPresenter notesPresenter;
 
     @Override
@@ -34,33 +28,9 @@ public class NotesActivity extends AppCompatActivity {
 
         setSupportActionBar(toolbar);
 
-        ActionBar actionBar = getSupportActionBar();
-
-        if (actionBar != null){
-
-            actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
-
-            actionBar.setDisplayHomeAsUpEnabled(true);
-
-        }
-
-        drawerLayout = findViewById(R.id.drawer_layout);
-
-        drawerLayout.setStatusBarBackground(R.color.colorPrimary);
-
-        NavigationView navigationView = findViewById(R.id.nav_view);
-
-        if (navigationView != null){
-
-            navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-
-                @Override
-                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                    return true;
-                }
-            });
-
-        }
+        ActionBar ab = getSupportActionBar();
+        ab.setHomeAsUpIndicator(R.drawable.ic_menu);
+        ab.setDisplayHomeAsUpEnabled(true);
 
         NotesFragment notesFragment = (NotesFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
 
@@ -90,7 +60,6 @@ public class NotesActivity extends AppCompatActivity {
         switch (item.getItemId()){
 
             case android.R.id.home:
-                drawerLayout.openDrawer(GravityCompat.START);
                 return true;
         }
 

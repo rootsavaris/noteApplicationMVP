@@ -203,6 +203,11 @@ public class NotesFragment extends Fragment implements NotesContract.View {
     }
 
     @Override
+    public void showNoteUnMarked() {
+        showMessage(getString(R.string.note_unmarked));
+    }
+
+    @Override
     public void showNotesCleared() {
         showMessage(getString(R.string.marked_notes_cleared));
 
@@ -274,6 +279,11 @@ public class NotesFragment extends Fragment implements NotesContract.View {
         @Override
         public void onMarkedNoteClick(Note markedNote) {
             mPresenter.markNote(markedNote);
+        }
+
+        @Override
+        public void onUnMarkedNoteClick(Note markedNote) {
+            mPresenter.unMarkNote(markedNote);
         }
 
     };
@@ -382,7 +392,13 @@ public class NotesFragment extends Fragment implements NotesContract.View {
 
                 @Override
                 public void onClick(View view) {
-                    mNotesItemListener.onMarkedNoteClick(note);
+
+                    if (note.isMarked()){
+                        mNotesItemListener.onUnMarkedNoteClick(note);
+                    } else {
+                        mNotesItemListener.onMarkedNoteClick(note);
+                    }
+
                 }
             });
 
@@ -404,6 +420,8 @@ public class NotesFragment extends Fragment implements NotesContract.View {
         void onNoteClick(Note clickedNote);
 
         void onMarkedNoteClick(Note markedNote);
+
+        void onUnMarkedNoteClick(Note markedNote);
 
     }
 

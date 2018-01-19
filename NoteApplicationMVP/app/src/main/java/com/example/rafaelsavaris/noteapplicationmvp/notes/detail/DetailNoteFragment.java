@@ -120,7 +120,7 @@ public class DetailNoteFragment extends Fragment implements DetailNoteContract.V
     }
 
     @Override
-    public void showMarkedStatus(boolean mark) {
+    public void showMarkedStatus(final boolean mark) {
 
         mMarkedCheck.setChecked(mark);
 
@@ -128,7 +128,13 @@ public class DetailNoteFragment extends Fragment implements DetailNoteContract.V
 
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mPresenter.markNote();
+
+                if (!isChecked){
+                    mPresenter.unMarkNote();
+                } else {
+                    mPresenter.markNote();
+                }
+
             }
         });
 
@@ -144,6 +150,12 @@ public class DetailNoteFragment extends Fragment implements DetailNoteContract.V
     @Override
     public void showNoteMarked() {
         Snackbar.make(getView(), getString(R.string.note_marked), Snackbar.LENGTH_LONG)
+                .show();
+    }
+
+    @Override
+    public void showNoteUnMarked() {
+        Snackbar.make(getView(), getString(R.string.note_unmarked), Snackbar.LENGTH_LONG)
                 .show();
     }
 

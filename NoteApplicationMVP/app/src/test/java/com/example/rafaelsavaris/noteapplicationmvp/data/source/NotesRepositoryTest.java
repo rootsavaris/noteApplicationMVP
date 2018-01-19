@@ -144,6 +144,44 @@ public class NotesRepositoryTest {
     }
 
     @Test
+    public void unMarkNote_unMmarksNoteServiceApiUpdatesCache(){
+
+        Note note = new Note(NOTE_TITLE, NOTE_TEXT, true);
+
+        mNotesRepository.saveNote(note);
+
+        mNotesRepository.unMarkNote(note);
+
+        verify(mNotesDatasourceRemote).unMarkNote(note);
+
+        verify(mNotesDatasourceLocal).unMarkNote(note);
+
+        assertThat(mNotesRepository.mCachedNotes.size(), is(1));
+
+        assertThat(mNotesRepository.mCachedNotes.get(note.getId()).isMarked(), is(false));
+
+    }
+
+    @Test
+    public void unMarkNoteId_unMarksNoteServiceApiUpdatesCache(){
+
+        Note note = new Note(NOTE_TITLE, NOTE_TEXT, true);
+
+        mNotesRepository.saveNote(note);
+
+        mNotesRepository.unMarkNote(note.getId());
+
+        verify(mNotesDatasourceRemote).unMarkNote(note);
+
+        verify(mNotesDatasourceLocal).unMarkNote(note);
+
+        assertThat(mNotesRepository.mCachedNotes.size(), is(1));
+
+        assertThat(mNotesRepository.mCachedNotes.get(note.getId()).isMarked(), is(false));
+
+    }
+
+    @Test
     public void getNote_requestsSingleNoteFromLocalDatasource(){
 
         mNotesRepository.getNote(NOTE_TITLE, mGetNoteCallBack);

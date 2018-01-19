@@ -69,6 +69,13 @@ public class NotesPresenter implements NotesContract.Presenter {
     }
 
     @Override
+    public void unMarkNote(Note markedNote) {
+        mRepository.unMarkNote(markedNote);
+        mView.showNoteUnMarked();
+        loadNotes(false, false);
+    }
+
+    @Override
     public void clearMarkedNotes() {
         mRepository.clearMarkedNotes();
         mView.showNotesCleared();

@@ -149,6 +149,20 @@ public class NotesPresenterTest {
     }
 
     @Test
+    public void unMarkNote_ShowsNoteUnMarked(){
+
+        Note note = new Note(NOTE_TITLE, NOTE_TEXT, true);
+
+        mNotesPresenter.unMarkNote(note);
+
+        verify(mNotesRepository).unMarkNote(note);
+
+        verify(mView).showNoteUnMarked();
+
+    }
+
+
+    @Test
     public void unavailableNotes_ShowsError(){
 
         mNotesPresenter.setFilter(NotesFilterType.ALL_NOTES);

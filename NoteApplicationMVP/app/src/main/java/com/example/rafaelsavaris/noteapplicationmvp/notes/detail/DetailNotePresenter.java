@@ -116,6 +116,20 @@ public class DetailNotePresenter implements DetailNoteContract.Presenter {
     }
 
     @Override
+    public void unMarkNote() {
+
+        if (Strings.isNullOrEmpty(mNoteId)){
+            mView.showMissingNote();
+            return;
+        }
+
+        mNotesRepository.unMarkNote(mNoteId);
+
+        mView.showNoteUnMarked();
+
+    }
+
+    @Override
     public void deleteNote() {
 
         if (Strings.isNullOrEmpty(mNoteId)){

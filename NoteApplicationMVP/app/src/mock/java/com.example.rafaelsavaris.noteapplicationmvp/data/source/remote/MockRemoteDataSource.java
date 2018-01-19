@@ -14,24 +14,16 @@ import java.util.Map;
  * Created by rafael.savaris on 18/10/2017.
  */
 
-public class NotesRemoteDataSource implements NotesDatasource {
+public class MockRemoteDataSource implements NotesDatasource {
 
-    private static NotesRemoteDataSource instance;
+    private static MockRemoteDataSource instance;
 
-    private static final int TIME_SERVICE = 5000;
+    private final static Map<String, Note> NOTES_DATA = new LinkedHashMap<>();
 
-    private final static Map<String, Note> NOTES_DATA;
-
-    static {
-        NOTES_DATA = new LinkedHashMap<>(2);
-        addNote("Note 1", "This is the Note1");
-        addNote("Note 2", "This is the Note2");
-    }
-
-    public static NotesRemoteDataSource getInstance(){
+    public static MockRemoteDataSource getInstance(){
 
         if (instance == null){
-            instance = new NotesRemoteDataSource();
+            instance = new MockRemoteDataSource();
         }
 
         return instance;
@@ -45,18 +37,7 @@ public class NotesRemoteDataSource implements NotesDatasource {
 
     @Override
     public void getNotes(final LoadNotesCallBack loadNotesCallBack) {
-
-        Handler handler = new Handler();
-
-        handler.postDelayed(new Runnable() {
-
-            @Override
-            public void run() {
-                loadNotesCallBack.onNotesLoaded(Lists.newArrayList(NOTES_DATA.values()));
-            }
-
-        }, TIME_SERVICE);
-
+        loadNotesCallBack.onNotesLoaded(Lists.newArrayList(NOTES_DATA.values()));
     }
 
     @Override
@@ -64,14 +45,7 @@ public class NotesRemoteDataSource implements NotesDatasource {
 
         final Note note = NOTES_DATA.get(noteId);
 
-        Handler handler = new Handler();
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                getNoteCallBack.onNoteLoaded(note);
-            }
-        }, TIME_SERVICE);
+        getNoteCallBack.onNoteLoaded(note);
 
     }
 

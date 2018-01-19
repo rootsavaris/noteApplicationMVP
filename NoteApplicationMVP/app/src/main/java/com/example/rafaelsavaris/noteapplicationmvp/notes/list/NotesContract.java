@@ -26,6 +26,8 @@ public class NotesContract {
 
         void markNote(Note markedNote);
 
+        void unMarkNote(Note markedNote);
+
         void clearMarkedNotes();
 
         void addNewNote();
@@ -53,6 +55,8 @@ public class NotesContract {
         void showLoadingNotesError();
 
         void showNoteMarked();
+
+        void showNoteUnMarked();
 
         void showNotesCleared();
 

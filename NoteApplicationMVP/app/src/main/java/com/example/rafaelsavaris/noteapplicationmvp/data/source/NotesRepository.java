@@ -169,7 +169,7 @@ public class NotesRepository implements NotesDatasource {
         mNotesLocal.markNote(note);
         mNotesRemote.markNote(note);
 
-        Note markedNote = new Note(note.getTitle(), note.getText(), note.getId(), !note.isMarked());
+        Note markedNote = new Note(note.getTitle(), note.getText(), note.getId(), true);
 
         if (mCachedNotes == null){
             mCachedNotes = new LinkedHashMap<>();
@@ -182,6 +182,27 @@ public class NotesRepository implements NotesDatasource {
     @Override
     public void markNote(String noteId) {
         markNote(getNoteWithId(noteId));
+    }
+
+    @Override
+    public void unMarkNote(Note note) {
+
+        mNotesLocal.unMarkNote(note);
+        mNotesRemote.unMarkNote(note);
+
+        Note markedNote = new Note(note.getTitle(), note.getText(), note.getId());
+
+        if (mCachedNotes == null){
+            mCachedNotes = new LinkedHashMap<>();
+        }
+
+        mCachedNotes.put(markedNote.getId(), markedNote);
+
+    }
+
+    @Override
+    public void unMarkNote(String noteId) {
+        unMarkNote(getNoteWithId(noteId));
     }
 
     @Override
