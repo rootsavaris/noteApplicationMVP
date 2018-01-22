@@ -1,4 +1,4 @@
-package com.example.rafaelsavaris.noteapplicationmvp.notes;
+package com.example.rafaelsavaris.noteapplicationmvp.notes.list;
 
 import android.app.Activity;
 import android.support.test.InstrumentationRegistry;
@@ -336,6 +336,29 @@ public class NotesScreenTest {
         TestUtils.rotateOrientation(TestUtils.getCurrentActivity());
 
         onView(withId(R.id.add_edit_note_title)).check(matches(withText(TITLE2)));
+
+    }
+
+    @Test
+    public void orientationChange_DuringEdit_NoDuplicate(){
+
+        createNote(TITLE, TEXT);
+
+        onView(withText(TITLE)).perform(click());
+
+        onView(withId(R.id.fab_edit_note)).perform(click());
+
+        TestUtils.rotateOrientation(TestUtils.getCurrentActivity());
+
+        onView(withId(R.id.add_edit_note_title)).perform(replaceText(TITLE2), closeSoftKeyboard());
+
+        onView(withId(R.id.add_edit_note_text)).perform(replaceText(TEXT2), closeSoftKeyboard());
+
+        onView(withId(R.id.fab_add_note_done)).perform(click());
+
+        onView(withItemText(TITLE2)).check(matches(isDisplayed()));
+
+        onView(withItemText(TITLE)).check(doesNotExist());
 
     }
 

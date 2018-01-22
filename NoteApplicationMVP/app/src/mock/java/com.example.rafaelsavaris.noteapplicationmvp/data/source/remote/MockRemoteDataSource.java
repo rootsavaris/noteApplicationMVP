@@ -1,6 +1,7 @@
 package com.example.rafaelsavaris.noteapplicationmvp.data.source.remote;
 
 import android.os.Handler;
+import android.support.annotation.VisibleForTesting;
 
 import com.example.rafaelsavaris.noteapplicationmvp.data.model.Note;
 import com.example.rafaelsavaris.noteapplicationmvp.data.source.NotesDatasource;
@@ -111,6 +112,13 @@ public class MockRemoteDataSource implements NotesDatasource {
 
         NOTES_DATA.remove(noteId);
 
+    }
+
+    @VisibleForTesting
+    public void addNotes(Note... notes){
+        for (Note note : notes){
+            NOTES_DATA.put(note.getId(), note);
+        }
     }
 
 }
